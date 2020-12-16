@@ -147,13 +147,14 @@ class LineFinder:
             else:
                 break
 
+        counter = 0
         while True:
             ind1 = self.find_letter_right(current_right)
             if not ind1 is None:
                 x1, y1, x2, y2 = self.__center_to_rect[tuple(ind1)]
                 rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=1, edgecolor='w', facecolor='none')
                 ax.add_patch(rect)
-                current_right = (self.__center_to_rect[tuple(ind1)], a)
+                current_right = (b, self.__center_to_rect[tuple(ind1)])
             else:
                 break
 
