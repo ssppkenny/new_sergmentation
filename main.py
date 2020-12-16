@@ -6,13 +6,16 @@ import matplotlib.patches as patches
 
 import heapq
 
-def ratio(a,b):
-    return min(a,b)/max(a,b)
 
-def similar_sizes(h1,w1,h2,w2):
-    return ratio(h1,h2)>=0.6 and ratio(w1,w2)>=0.1
+def ratio(a, b):
+    return min(a, b) / max(a, b)
 
-class LineFinder:
+
+def similar_sizes(h1, w1, h2, w2):
+    return ratio(h1, h2) >= 0.6 and ratio(w1, w2) >= 0.1
+
+
+class LineFinder(object):
     def __init__(self, filename):
         self.__filename = filename
         self.preprocess()
@@ -107,6 +110,7 @@ class LineFinder:
         return centroids[nnb] if not nnb is None else None
 
     def find_lines(self):
+        fig, ax = plt.subplots(1)
         centroids = self.__centroids
         q = []
         max_prio = -float('inf')
@@ -127,65 +131,55 @@ class LineFinder:
 
         visited = set()
 
-        p, (a, b) = heapq.heappop(q)
-        visited.add(a)
-        visited.add(b)
+        textlines = []
 
-        ## form a line
-        current_left = (a, b)
-        current_right = (a, b)
+        while q:
+            p, (a, b) = heapq.heappop(q)
+            if a in visited or b in visited:
+                continue
 
-        fig, ax = plt.subplots(1)
+            textline = [a, b]
 
+            visited.add(a)
+            visited.add(b)
+
+            ## form a line
+            current_left = (a, b)
+            current_right = (a, b)
+
+            self.form_text_line(a, b, current_left, current_right, textline, visited)
+            ax.imshow(self.__img)
+            self.draw_text_line(ax, textline)
+            textlines.append(textline)
+        print(len(textlines))
+
+
+    def draw_text_line(self, ax, textline):
+        for letter in textline:
+            x1, y1, x2, y2 = letter
+            rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=1, edgecolor='w', facecolor='none')
+            ax.add_patch(rect)
+
+    def form_text_line(self, a, b, current_left, current_right, textline, visited):
         while True:
             ind1 = self.find_letter_left(current_left)
             if not ind1 is None:
-                x1, y1, x2, y2 = self.__center_to_rect[tuple(ind1)]
-                rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=1, edgecolor='w', facecolor='none')
-                ax.add_patch(rect)
+                textline.insert(0, self.__center_to_rect[tuple(ind1)])
+                visited.add(self.__center_to_rect[tuple(ind1)])
                 current_left = (self.__center_to_rect[tuple(ind1)], a)
             else:
                 break
-
-        counter = 0
         while True:
             ind1 = self.find_letter_right(current_right)
             if not ind1 is None:
-                x1, y1, x2, y2 = self.__center_to_rect[tuple(ind1)]
-                rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=1, edgecolor='w', facecolor='none')
-                ax.add_patch(rect)
+                textline.append(self.__center_to_rect[tuple(ind1)])
+                visited.add(self.__center_to_rect[tuple(ind1)])
                 current_right = (b, self.__center_to_rect[tuple(ind1)])
             else:
                 break
 
 
-        ax.imshow(self.__img)
-        x1,y1,x2,y2 = a
-        rect = patches.Rectangle((x1, y1), x2-x1, y2-y1, linewidth=1, edgecolor='w', facecolor='none')
-
-        # Add the patch to the Axes
-        ax.add_patch(rect)
-
-        x1, y1, x2, y2 = b
-        rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=1, edgecolor='w', facecolor='none')
-
-        # Add the patch to the Axes
-        ax.add_patch(rect)
-
-
-
-        plt.show()
-
-
-
 if __name__ == '__main__':
-    lf = LineFinder('word.png')
+    lf = LineFinder('test_page.png')
     lf.find_lines()
-
-
-
-
-
-
-
-
+    plt.show()
