@@ -180,6 +180,6 @@ class LineFinder(object):
 
 
 if __name__ == '__main__':
-    lf = LineFinder('test_page.png')
+    lf = LineFinder('curved_lines.png')
     lf.find_lines()
     plt.show()
